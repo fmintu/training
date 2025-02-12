@@ -1,0 +1,17 @@
+static library
+
+  g++ -c  math.cpp -o math.o
+  ar rcs  staticlib.a math.o
+
+
+dynamic lib
+  g++ -c -fPIC math.cpp -o math.o
+  g++ -shared -o mathlib.so math.o
+
+  echo $LD_LIBRARY_PATH
+  Thiet lap duong dan tam thoi
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/lib
+
+  copy vao lib trong linux
+  sudo cp lib/mathlib.so /usr/lib/
+  sudo ldconfig
