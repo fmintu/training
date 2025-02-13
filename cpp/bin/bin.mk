@@ -1,0 +1,1 @@
+include ./bin1/bin1.mk
