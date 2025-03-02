@@ -1,5 +1,5 @@
 SRC_DIR = .
-SRC = main.cpp hoang.cpp
+SRC = main.cpp status.cpp
 OBJ = $(SRC:.cpp=.o)
 CC = g++
 CFLAGS = -Wall -Wextra -std=c++11
