@@ -10,7 +10,7 @@ std::mutex cv_mtx;
 std::condition_variable cv;
 bool ready = false;
 
-int sendMessage(std::string message) {
+int send_message(std::string message) {
   int sock = 0;
   struct sockaddr_in serv_addr;
 
@@ -51,7 +51,7 @@ int sendMessage(std::string message) {
   return 0;
 }
 
-long long getTotalCPUTime() {
+long long get_total_cpu_time() {
   std::ifstream procStat("/proc/stat");
   std::string line;
   getline(procStat, line);
@@ -63,7 +63,7 @@ long long getTotalCPUTime() {
   return user + nice + system + idle + iowait + irq + softirq + steal;
 }
 
-long long getProcessCPUTime() {
+long long get_process_cpu_time() {
   std::ifstream procStat("/proc/self/stat");
   std::string value;
   long long utime, stime, cutime, cstime;
@@ -73,30 +73,30 @@ long long getProcessCPUTime() {
   return utime + stime + cutime + cstime;
 }
 
-void cpuMonitor(int interval) {
+void cpu_monitor(int interval) {
   const long ticks_per_second = sysconf(_SC_CLK_TCK);
-  long long prevTotalTime = getTotalCPUTime();
-  long long prevProcTime = getProcessCPUTime();
+  long long prev_total_time = get_total_cpu_time();
+  long long prev_proc_time = get_process_cpu_time();
 
   while (true) {
     std::this_thread::sleep_for(std::chrono::seconds(interval));
 
     mtx.lock();
 
-    long long currTotalTime = getTotalCPUTime();
-    long long currProcTime = getProcessCPUTime();
+    long long curr_total_time = get_total_cpu_time();
+    long long curr_proc_time = get_process_cpu_time();
 
-    long long totalDelta = currTotalTime - prevTotalTime;
-    long long procDelta = currProcTime - prevProcTime;
+    long long total_delta = curr_total_time - prev_total_time;
+    long long proc_delta = curr_proc_time - prev_proc_time;
 
-    double cpuUsage = 100.0 * (procDelta / static_cast<double>(totalDelta)) /
-                      ticks_per_second;
+    double cpu_usage = 100.0 * (proc_delta / static_cast<double>(total_delta)) /
+                       ticks_per_second;
 
-    std::cout << "CPU Usage: " << cpuUsage << "%" << std::endl;
-    cpu = cpuUsage;
+    std::cout << "CPU Usage: " << cpu_usage << "%" << std::endl;
+    cpu = cpu_usage;
 
-    prevTotalTime = currTotalTime;
-    prevProcTime = currProcTime;
+    prev_total_time = curr_total_time;
+    prev_proc_time = curr_proc_time;
 
     mtx.unlock();
 
@@ -104,7 +104,7 @@ void cpuMonitor(int interval) {
   }
 }
 /// MEM
-int getMemoryUsage() {
+int get_memory_usage() {
   std::string line;
   int memory = 0;
   std::ifstream statusFile("/proc/self/status");
@@ -126,10 +126,10 @@ int getMemoryUsage() {
   return memory;
 }
 
-void memoryMonitor(int interval) {
+void memory_monitor(int interval) {
   while (true) {
     mtx.lock();
-    mem = getMemoryUsage();
+    mem = get_memory_usage();
     // int MEM = getMemoryUsage();
     std::cout << "Memory Usage: " << mem << " KB" << std::endl;
 
@@ -138,7 +138,7 @@ void memoryMonitor(int interval) {
   }
 }
 
-void trackingMonitor(int interval) {
+void tracking_monitor(int interval) {
   while (true) {
     if (mtx.try_lock()) {
       counter++;
@@ -162,7 +162,7 @@ void trackingMonitor(int interval) {
   }
 }
 
-void notifyMonitor(int interval) {
+void notify_monitor(int interval) {
   while (true) {
     std::unique_lock<std::mutex> lock(cv_mtx);
     cv.wait(lock, [] { return ready; });
@@ -173,7 +173,7 @@ void notifyMonitor(int interval) {
     queue.pop();
 
     std::string message = std::to_string(c_cpu) + "|" + std::to_string(c_mem);
-    sendMessage(message);
+    send_message(message);
 
     ready = false;
     std::this_thread::sleep_for(std::chrono::seconds(interval));

@@ -26,16 +26,16 @@ extern std::queue<std::pair<int, int> > queue;
 extern int cpu;
 extern int mem;
 
-long long getTotalCPUTime();
-long long getProcessCPUTime();
-void cpuMonitor(int interval);
+long long get_total_cpu();
+long long get_process_cpu();
+void cpu_monitor(int interval);
 
-int getMemoryUsage();
-void memoryMonitor(int interval);
+int get_memory_usage();
+void memory_monitor(int interval);
 
-void cpuMonitor(int interval);
+void cpu_monitor(int interval);
 
-void trackingMonitor(int interval);
-void notifyMonitor(int interval);
-int sendMessage(std::string message);
+void tracking_monitor(int interval);
+void notify_monitor(int interval);
+int send_message(std::string message);
 #endif

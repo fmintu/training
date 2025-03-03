@@ -2,15 +2,15 @@
 #include "status.h"
 
 int main() {
-  std::thread memThread(memoryMonitor, 2);
-  std::thread cpuThread(cpuMonitor, 2);
-  std::thread trackingThread(trackingMonitor, 2);
-  std::thread notifyThread(notifyMonitor, 2);
+  std::thread mem_thread(memory_monitor, 2);
+  std::thread cpu_thread(cpu_monitor, 2);
+  std::thread tracking_thread(tracking_monitor, 2);
+  std::thread notify_thread(notify_monitor, 2);
 
-  notifyThread.join();
-  cpuThread.join();
-  trackingThread.join();
-  memThread.join();
+  notify_thread.join();
+  cpu_thread.join();
+  tracking_thread.join();
+  mem_thread.join();
 
   return 0;
 }
