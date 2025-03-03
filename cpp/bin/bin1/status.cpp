@@ -4,10 +4,52 @@ std::mutex mtx;
 int counter = 0;
 int mem = 0;
 int cpu = 0;
+std::queue<std::pair<int, int>> queue;
 
 std::mutex cv_mtx;
 std::condition_variable cv;
 bool ready = false;
+
+int sendMessage(std::string message) {
+  int sock = 0;
+  struct sockaddr_in serv_addr;
+
+  char buffer[1024] = {0};
+
+  // Creating the socket
+  if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    std::cout << "Socket creation error" << std::endl;
+    return -1;
+  }
+
+  serv_addr.sin_family = AF_INET;
+  serv_addr.sin_port = htons(8080);
+
+  // Convert IPv4 and IPv6 addresses from text to binary form
+  if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+    std::cout << "Invalid address/ Address not supported" << std::endl;
+    return -1;
+  }
+
+  // Connect to the server
+  if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+    std::cout << "Connection Failed" << std::endl;
+    return -1;
+  }
+
+  // Send message to the server
+  send(sock, message.c_str(), message.length(), 0);
+  std::cout << "Message sent" << std::endl;
+
+  // Read response from the server
+  read(sock, buffer, 1024);
+  std::cout << "Message from server: " << buffer << std::endl;
+
+  // Close the socket
+  close(sock);
+
+  return 0;
+}
 
 long long getTotalCPUTime() {
   std::ifstream procStat("/proc/stat");
@@ -21,13 +63,12 @@ long long getTotalCPUTime() {
   return user + nice + system + idle + iowait + irq + softirq + steal;
 }
 
-// Function to get process CPU time
 long long getProcessCPUTime() {
   std::ifstream procStat("/proc/self/stat");
   std::string value;
   long long utime, stime, cutime, cstime;
 
-  for (int i = 1; i <= 13; ++i) procStat >> value;  // Skip initial values
+  for (int i = 1; i <= 13; ++i) procStat >> value;
   procStat >> utime >> stime >> cutime >> cstime;
   return utime + stime + cutime + cstime;
 }
@@ -53,7 +94,7 @@ void cpuMonitor(int interval) {
 
     std::cout << "CPU Usage: " << cpuUsage << "%" << std::endl;
     cpu = cpuUsage;
-    // Update previous values for next calculation
+
     prevTotalTime = currTotalTime;
     prevProcTime = currProcTime;
 
@@ -102,10 +143,12 @@ void trackingMonitor(int interval) {
     if (mtx.try_lock()) {
       counter++;
       std::cout << "Counter: " << counter << std::endl;
+      queue.push({cpu, mem});
+
       std::this_thread::sleep_for(std::chrono::seconds(interval));
       mtx.unlock();
 
-      if (mem < 10.0 || cpu < 10.0) {
+      if (counter % 5 == 0) {  // if
         std::unique_lock<std::mutex> lock(cv_mtx);
         ready = true;
         cv.notify_all();
@@ -120,8 +163,19 @@ void trackingMonitor(int interval) {
 }
 
 void notifyMonitor(int interval) {
-  std::unique_lock<std::mutex> lock(cv_mtx);
-  cv.wait(lock, [] { return ready; });  // Chờ cho đến khi ready == true
-  std::cout << "Notify thread is processing data\n";
-  std::this_thread::sleep_for(std::chrono::seconds(interval));
+  while (true) {
+    std::unique_lock<std::mutex> lock(cv_mtx);
+    cv.wait(lock, [] { return ready; });
+
+    std::cout << "Notify thread is processing data\n";
+    int c_cpu = queue.front().first;
+    int c_mem = queue.front().second;
+    queue.pop();
+
+    std::string message = std::to_string(c_cpu) + "|" + std::to_string(c_mem);
+    sendMessage(message);
+
+    ready = false;
+    std::this_thread::sleep_for(std::chrono::seconds(interval));
+  }
 }
