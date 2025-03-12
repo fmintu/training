@@ -8,5 +8,5 @@ $(SRC_DIR)/%.o: $(SRC_DIR)/%.cpp
 	# echo $< $@
 	$(CC) $(CFLAGS) -c $< -o $@
 
-bin2: $(OBJ)
+server: $(OBJ)
 	$(CC) $(OBJ) -o $@

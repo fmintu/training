@@ -1,1 +1,1 @@
-include ./bin1/bin1.mk
+include ./client/client.mk

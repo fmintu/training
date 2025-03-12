@@ -1,1 +1,0 @@
-include bin1.mk
