@@ -1,0 +1,1 @@
+include bin3.mk

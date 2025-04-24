@@ -1,9 +1,9 @@
 # ===== CONFIG =====
-TARGET       := math
+TARGET       := shape
 SRC_DIR      := .
 BUILD_DIR    := ../../build/pkg/$(TARGET)
-SRC          := math.cpp
-OBJ          := $(BUILD_DIR)/math.o
+SRC          := shape.cpp
+OBJ          := $(BUILD_DIR)/shape.o
 OUT          := $(BUILD_DIR)/$(TARGET).a
 
 CXX          := g++
@@ -16,13 +16,13 @@ ARFLAGS      := rcs
 $(BUILD_DIR):
 	@mkdir -p $@
 
-$(OBJ): $(SRC_DIR)/math.cpp | $(BUILD_DIR)
+$(OBJ): $(SRC_DIR)/shape.cpp | $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(OUT): $(OBJ)
 	$(AR) $(ARFLAGS) $@ $^
 
-pkg_math: $(OUT)
+pkg_shape: $(OUT)
 
 # clean:
 # 	rm -rf $(BUILD_DIR)
