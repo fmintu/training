@@ -1,30 +1,12 @@
-# ===== CONFIG =====
-TARGET       := math
-SRC_DIR      := .
-BUILD_DIR    := ../../build/pkg/$(TARGET)
-SRC          := math.cpp
-OBJ          := $(BUILD_DIR)/math.o
-OUT          := $(BUILD_DIR)/$(TARGET).a
+MATH_SRC := lib/math/math.cpp
+MATH_OBJ := build/pkg/math/math.o
+MATH_LIB := build/pkg/math/math.a
 
-CXX          := g++
-CXXFLAGS     := -std=c++17 -Wall -Wextra -I$(SRC_DIR)
-AR           := ar
-ARFLAGS      := rcs
+$(MATH_OBJ): $(MATH_SRC) | build/pkg/math
+	$(CXX) $(CXXFLAGS) -Ilib/math -c $< -o $@
 
-# ===== RULES =====
+$(MATH_LIB): $(MATH_OBJ)
+	ar rcs $@ $^
 
-$(BUILD_DIR):
+build/pkg/math:
 	@mkdir -p $@
-
-$(OBJ): $(SRC_DIR)/math.cpp | $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-$(OUT): $(OBJ)
-	$(AR) $(ARFLAGS) $@ $^
-
-pkg_math: $(OUT)
-
-# clean:
-# 	rm -rf $(BUILD_DIR)
-
-.PHONY: all clean

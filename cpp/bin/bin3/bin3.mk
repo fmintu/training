@@ -1,32 +1,12 @@
-# ========== CONFIG ==========
-TARGET      := bin3
-BUILD_DIR   := ../../build/$(TARGET)
-OUT         := $(BUILD_DIR)/$(TARGET)
+BIN3_SRC := bin/bin3/main.cpp
+BIN3_OBJ := build/bin3/main.o
+BIN3_OUT := build/bin3/bin3
 
-SRC         := main.cpp \
-               ../../common/util.cpp \
-               ../../lib/math/math.cpp
+$(BIN3_OBJ): $(BIN3_SRC) | build/bin3
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-INC         := -I../../common \
-							 -I../../lib/math \
-							 -I../../lib/shape \
+$(BIN3_OUT): $(BIN3_OBJ) $(UTIL_LIB) $(MATH_LIB) $(SHAPE_LIB)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIB_PATHS) -l:util.a -l:math.a -l:shape.a
 
-LIB_DIR     := -L../../lib/shape
-LIBS        := -l:shape.a
-
-CXX         := g++
-CXXFLAGS    := -std=c++17 -Wall -Wextra $(INC)
-LDFLAGS     := $(LIB_DIR) $(LIBS)
-
-# ========== BUILD RULES ==========
-
-all: $(OUT)
-
-$(BUILD_DIR):
+build/bin3:
 	@mkdir -p $@
-
-$(OUT): $(SRC) | $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
-
-clean:
-	rm -f $(OUT)

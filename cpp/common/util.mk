@@ -1,23 +1,12 @@
-# ===== CONFIG =====
-TARGET       := util
-SRC_DIR      := .
-BUILD_DIR    := ../build/common/util
-SRC          := util.cpp
-OBJ          := $(BUILD_DIR)/$(TARGET).o
+UTIL_SRC := common/util.cpp
+UTIL_OBJ := build/common/util/util.o
+UTIL_LIB := build/common/util.a
 
-CXX          := g++
-CXXFLAGS     := -std=c++17 -Wall -Wextra -I$(SRC_DIR)
+$(UTIL_OBJ): $(UTIL_SRC) | build/common/util
+	$(CXX) $(CXXFLAGS) -Icommon -c $< -o $@
 
-# ===== RULES =====
-$(BUILD_DIR):
+$(UTIL_LIB): $(UTIL_OBJ)
+	ar rcs $@ $^
+
+build/common/util:
 	@mkdir -p $@
-
-$(OBJ): $(SRC_DIR)/$(SRC) | $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-all: $(OBJ)
-
-clean:
-	rm -rf $(BUILD_DIR)
-
-.PHONY: all clean

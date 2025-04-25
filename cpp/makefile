@@ -1,42 +1,26 @@
-.PHONY: all clean bin1 bin2 bin3 bin4 fmt gtest test_bin4
+# ===== Compiler and Flags =====
+CXX := g++
+INCLUDES := -Icommon -Ilib/math -Ilib/shape
+LIB_PATHS := -Lbuild/common -Lbuild/pkg/math -Lbuild/pkg/shape
+CXXFLAGS := -std=c++17 -Wall -Wextra $(INCLUDES)
 
-# ========== INCLUDING  ==========
-include pkg/gtest.mk
-include pkg/fmt.mk
+# ===== Include modules =====
+include common/util.mk
+include lib/math/math.mk
+include lib/shape/shape.mk
 
-# ========== PACKET  ==========
-gtest: gtest
+# ===== Include binaries =====
+include bin/bin1/bin1.mk
+include bin/bin2/bin2.mk
+include bin/bin3/bin3.mk
+include bin/bin4/bin4.mk
 
-gtest_clean:
-	$(MAKE) -C pkg -f gtest.mk gtest-clean
+# ===== Targets =====
+ALL_BINS := $(BIN1_OUT) $(BIN2_OUT) $(BIN3_OUT) $(BIN4_OUT)
 
-# ========== BUILD BINARIES ==========
+.PHONY: all clean
 
-all: bin1 bin2 bin3 bin4
+all: $(UTIL_LIB) $(MATH_LIB) $(SHAPE_LIB) $(ALL_BINS)
 
-bin1:
-	$(MAKE) -C bin/bin1 -f bin1.mk all
-
-bin2:
-	$(MAKE) -C bin/bin2 -f bin2.mk all
-
-bin3:
-	$(MAKE) -C bin/bin3 -f bin3.mk all
-
-bin4:
-	$(MAKE) -C bin/bin4 -f bin4.mk all
-
-test_bin4: gtest
-	$(MAKE) -C bin/bin4 -f bin4.mk test_bin4
-
-# ========== CLEAN ==========
-
-clean: gtest_clean
-	$(MAKE) -C bin/bin1 -f bin1.mk clean
-	$(MAKE) -C bin/bin2 -f bin2.mk clean
-	$(MAKE) -C bin/bin3 -f bin3.mk clean
-	$(MAKE) -C bin/bin4 -f bin4.mk clean
-
-clean_test:
-	$(MAKE) -C bin/bin4 -f bin4.mk clean_test_bin4
-
+clean:
+	rm -rf build/*

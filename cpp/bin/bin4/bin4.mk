@@ -1,39 +1,12 @@
-# include test/test_bin4.mk
+BIN4_SRC := bin/bin4/main.cpp
+BIN4_OBJ := build/bin4/main.o
+BIN4_OUT := build/bin4/bin4
 
-.PHONY: all clean test_bin4 clean_test_bin4
-# ===== CONFIG =====
-TARGET        := bin4
-BUILD_DIR     := ../../build/$(TARGET)
-OUT           := $(BUILD_DIR)/$(TARGET)
+$(BIN4_OBJ): $(BIN4_SRC) | build/bin4
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-SRC           := main.cpp ../../common/util.cpp ../../lib/math/math.cpp
-INC           := -I../../common \
-								 -I../../lib/math \
-								 -I../../lib/shape \
+$(BIN4_OUT): $(BIN4_OBJ) $(UTIL_LIB) $(MATH_LIB) $(SHAPE_LIB)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIB_PATHS) -l:util.a -l:math.a -l:shape.a
 
-LIB_DIRS      := -L../../lib/shape
-LIBS          := -l:shape.a
-
-CXX           := g++
-CXXFLAGS      := -std=c++17 -Wall -Wextra $(INC)
-LDFLAGS       := $(LIB_DIRS) $(LIBS)
-
-$(BUILD_DIR):
+build/bin4:
 	@mkdir -p $@
-
-all: $(OUT)
-
-$(OUT): $(SRC) | $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
-
-test_bin4:
-	$(MAKE) -C test -f test_bin4.mk test_bin4
-
-clean_test_bin4:
-	$(MAKE) -C test -f test_bin4.mk clean_test_bin4
-
-clean:
-	rm -f $(OUT)
-
-
-

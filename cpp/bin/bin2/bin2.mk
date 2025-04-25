@@ -1,25 +1,12 @@
-# ===== CONFIG =====
-TARGET      := bin2
-BUILD_DIR   := ../../build/$(TARGET)
-OUT         := $(BUILD_DIR)/$(TARGET)
+BIN2_SRC := bin/bin2/main.cpp
+BIN2_OBJ := build/bin2/main.o
+BIN2_OUT := build/bin2/bin2
 
-SRC         := main.cpp
-INC         := -I../../lib/shape
-LIB_DIR     := -L../../lib/shape
-LIBS        := -l:shape.a
+$(BIN2_OBJ): $(BIN2_SRC) | build/bin2
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-CXX         := g++
-CXXFLAGS    := -std=c++17 -Wall -Wextra $(INC)
-LDFLAGS     := $(LIB_DIR) $(LIBS)
+$(BIN2_OUT): $(BIN2_OBJ) $(UTIL_LIB) $(SHAPE_LIB)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIB_PATHS) -l:util.a -l:shape.a
 
-# ===== RULES =====
-all: $(OUT)
-
-$(BUILD_DIR):
+build/bin2:
 	@mkdir -p $@
-
-$(OUT): $(SRC) | $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
-
-clean:
-	rm -f $(OUT)

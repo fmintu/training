@@ -1,25 +1,12 @@
-# ===== CONFIG =====
-TARGET      := bin1
-BUILD_DIR   := ../../build/$(TARGET)
-OUT         := $(BUILD_DIR)/$(TARGET)
+BIN1_SRC := bin/bin1/main.cpp
+BIN1_OBJ := build/bin1/main.o
+BIN1_OUT := build/bin1/bin1
 
-SRC         := main.cpp \
-               ../../common/util.cpp \
-               ../../lib/math/math.cpp
+$(BIN1_OBJ): $(BIN1_SRC) | build/bin1
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-INC         := -I../../common -I../../lib/math
+$(BIN1_OUT): $(BIN1_OBJ) $(UTIL_LIB)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIB_PATHS) -l:util.a -l:math.a
 
-CXX         := g++
-CXXFLAGS    := -std=c++17 -Wall -Wextra $(INC)
-
-# ===== RULES =====
-all: $(OUT)
-
-$(BUILD_DIR):
+build/bin1:
 	@mkdir -p $@
-
-$(OUT): $(SRC) | $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $^ -o $@
-
-clean:
-	rm -f $(OUT)

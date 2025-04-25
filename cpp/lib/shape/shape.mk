@@ -1,30 +1,12 @@
-# ===== CONFIG =====
-TARGET       := shape
-SRC_DIR      := .
-BUILD_DIR    := ../../build/pkg/$(TARGET)
-SRC          := shape.cpp
-OBJ          := $(BUILD_DIR)/shape.o
-OUT          := $(BUILD_DIR)/$(TARGET).a
+SHAPE_SRC := lib/shape/shape.cpp
+SHAPE_OBJ := build/pkg/shape/shape.o
+SHAPE_LIB := build/pkg/shape/shape.a
 
-CXX          := g++
-CXXFLAGS     := -std=c++17 -Wall -Wextra -I$(SRC_DIR)
-AR           := ar
-ARFLAGS      := rcs
+$(SHAPE_OBJ): $(SHAPE_SRC) | build/pkg/shape
+	$(CXX) $(CXXFLAGS) -Ilib/shape -c $< -o $@
 
-# ===== RULES =====
+$(SHAPE_LIB): $(SHAPE_OBJ)
+	ar rcs $@ $^
 
-$(BUILD_DIR):
+build/pkg/shape:
 	@mkdir -p $@
-
-$(OBJ): $(SRC_DIR)/shape.cpp | $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-$(OUT): $(OBJ)
-	$(AR) $(ARFLAGS) $@ $^
-
-pkg_shape: $(OUT)
-
-# clean:
-# 	rm -rf $(BUILD_DIR)
-
-.PHONY: all clean
