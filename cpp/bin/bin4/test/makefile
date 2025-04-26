@@ -1,1 +1,0 @@
-include test_bin4.mk

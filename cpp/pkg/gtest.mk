@@ -1,7 +1,7 @@
 # === CONFIGURATION ===
 GTEST_SRC_DIR := pkg/gtest/googletest
 GTEST_BUILD_DIR := $(GTEST_SRC_DIR)/build
-GTEST_OUTPUT_DIR := build/gtest
+GTEST_OUTPUT_DIR := build/pkg/gtest
 
 .PHONY: gtest gtest-clean
 
