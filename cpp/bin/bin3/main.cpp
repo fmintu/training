@@ -30,7 +30,7 @@ void send_json(int sock, const json& j) {
 
 int main() {
   const std::string SERVER_IP = "127.0.0.1";
-  const int SERVER_PORT = 12345;
+  const int SERVER_PORT = 123456;
 
   int sock = socket(AF_INET, SOCK_STREAM, 0);
   if (sock < 0) {

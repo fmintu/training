@@ -1,5 +1,6 @@
-#include "json.hpp"
 #include "message_processor.h"
+
+#include "json.hpp"
 #include "routes.h"
 
 using json = nlohmann::json;

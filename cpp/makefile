@@ -7,6 +7,7 @@ CXXFLAGS := -std=c++17 -Wall -Wextra $(INCLUDES)
 # ===== Include packets =====
 include pkg/gtest.mk
 include pkg/json.mk
+include pkg/sqlite.mk
 # ===== Include modules =====
 include common/util.mk
 include lib/math/math.mk
@@ -20,9 +21,9 @@ include bin/bin3/bin3.mk
 include bin/bin4/bin4.mk
 
 # ===== Targets =====
-ALL_PKGS := json  #pkg_gtest
+ALL_PKGS := json pkg_sqlite #pkg_gtest
 
-ALL_BINS := $(BIN1_OUT) $(BIN2_OUT) $(BIN3_OUT) $(BIN4_OUT)
+ALL_BINS := $(BIN1_TARGET) $(BIN2_TARGET) $(BIN3_TARGET) $(BIN4_TARGET)
 ALL_LIBS := $(UTIL_LIB) $(MATH_LIB) $(SHAPE_LIB) $(THREAD_LIB)
 
 

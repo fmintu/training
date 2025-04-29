@@ -1,131 +1,23 @@
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <unistd.h>
 
-#include <arpa/inet.h>   // For inet_ntoa
-#include <netinet/in.h>  // For sockaddr_in
-#include <unistd.h>      // For close
-
-#include <cstring>  // For memset
-#include <functional>
 #include <iostream>
-#include <mutex>
-#include <string>
-#include <thread>
-#include <unordered_map>
-#include <vector>
 
-#include "../../common/util.h"
-#include "../../lib/math/math.h"
-#include "../../lib/shape/shape.h"
-#include "../../lib/thread/thread.h"
-#include "json.hpp"
-
-using json = nlohmann::json;
-using GetHandler = std::function<json()>;
-using PostHandler = std::function<json(const json&)>;
-
-// ========== Connection Table ==========
-struct ClientConnection {
-  int socket_fd;
-  std::thread thread_handle;
-  bool active;
-};
+#include "client_handler.h"
+#include "connection_table.h"
+#include "database.h"
 
 std::unordered_map<int, ClientConnection> connection_table;
 std::mutex table_mutex;
 
-// ========== GET Handlers ==========
-json handle_api_info() {
-  return json{{"status", "ok"}, {"message", "This is API info"}};
-}
-
-json handle_api_status() {
-  return json{{"status", "ok"}, {"message", "This is API status"}};
-}
-
-json handle_api_user() {
-  return json{{"status", "ok"}, {"message", "This is API user"}};
-}
-
-// ========== POST Handlers ==========
-json handle_login(const json& data) {
-  std::string username = data.value("username", "unknown");
-  return json{{"status", "ok"}, {"message", "User " + username + " logged in"}};
-}
-
-json handle_upload(const json& data) {
-  return json{{"status", "ok"}, {"message", "Upload received: " + data.dump()}};
-}
-
-// ========== Handler Dispatchers ==========
-json handle_get(const json& j) {
-  static const std::unordered_map<std::string, GetHandler> get_routes = {
-      {"/api/info", handle_api_info},
-      {"/api/status", handle_api_status},
-      {"/api/user", handle_api_user}};
-  std::string path = j["data"];
-  auto it = get_routes.find(path);
-  if (it != get_routes.end()) return it->second();
-  return json{{"status", "error"}, {"message", "Unknown GET path: " + path}};
-}
-
-json handle_post(const json& j) {
-  static const std::unordered_map<std::string, PostHandler> post_routes = {
-      {"login", handle_login}, {"upload", handle_upload}};
-  std::string action = j["data"].value("action", "");
-  auto it = post_routes.find(action);
-  if (it != post_routes.end()) return it->second(j["data"]);
-  return json{{"status", "error"},
-              {"message", "Unknown POST action: " + action}};
-}
-
-json handle_json(const json& j) {
-  return json{{"status", "ok"},
-              {"message", "Generic JSON received"},
-              {"echo", j["data"]}};
-}
-
-std::string process_message(const std::string& message) {
-  try {
-    json j = json::parse(message);
-    std::string type = j["type"];
-    if (type == "GET") return handle_get(j).dump();
-    if (type == "POST") return handle_post(j).dump();
-    if (type == "JSON") return handle_json(j).dump();
-
-    return json({{"status", "error"}, {"message", "Unknown type: " + type}})
-        .dump();
-  } catch (const std::exception& e) {
-    return json({{"status", "error"},
-                 {"message", std::string("Invalid JSON: ") + e.what()}})
-        .dump();
-  }
-}
-
-void client_handler(int client_socket, sockaddr_in client_addr) {
-  std::cout << "Client connected: " << inet_ntoa(client_addr.sin_addr) << ":"
-            << ntohs(client_addr.sin_port) << "\n";
-
-  char buffer[4096];
-  while (true) {
-    memset(buffer, 0, sizeof(buffer));
-    int bytes_received = recv(client_socket, buffer, sizeof(buffer) - 1, 0);
-
-    if (bytes_received <= 0) {
-      { std::cout << "Client disconnected.\n"; }
-      std::lock_guard<std::mutex> lock(table_mutex);
-      connection_table[client_socket].active = false;
-      break;
-    }
-
-    std::string received(buffer);
-    std::string response = process_message(received);
-    send(client_socket, response.c_str(), response.size(), 0);
-  }
-
-  close(client_socket);
-}
-
 int main() {
-  const int PORT = 12345;
+  if (!init_database("login.db")) {
+    std::cerr << "Database initialization failed.\n";
+    return 1;
+  }
+  // =============================================
+  const int PORT = 123456;
   int server_socket = socket(AF_INET, SOCK_STREAM, 0);
   if (server_socket == -1) {
     std::cerr << "Socket creation failed.\n";

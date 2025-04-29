@@ -6,7 +6,7 @@ JSON_URL := https://raw.githubusercontent.com/nlohmann/json/develop/single_inclu
 
 JSON_INCLUDE := -I.build/pkg/json
 
-.PHONY: json
+ : json
 
 json: $(JSON_HEADER)
 
