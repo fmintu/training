@@ -1,26 +1,171 @@
 
+#include <arpa/inet.h>   // For inet_ntoa
+#include <netinet/in.h>  // For sockaddr_in
+#include <unistd.h>      // For close
+
+#include <cstring>  // For memset
+#include <functional>
 #include <iostream>
+#include <mutex>
+#include <string>
 #include <thread>
+#include <unordered_map>
+#include <vector>
 
 #include "../../common/util.h"
 #include "../../lib/math/math.h"
 #include "../../lib/shape/shape.h"
 #include "../../lib/thread/thread.h"
+#include "json.hpp"
+
+using json = nlohmann::json;
+using GetHandler = std::function<json()>;
+using PostHandler = std::function<json(const json&)>;
+
+// ========== Connection Table ==========
+struct ClientConnection {
+  int socket_fd;
+  std::thread thread_handle;
+  bool active;
+};
+
+std::unordered_map<int, ClientConnection> connection_table;
+std::mutex table_mutex;
+
+// ========== GET Handlers ==========
+json handle_api_info() {
+  return json{{"status", "ok"}, {"message", "This is API info"}};
+}
+
+json handle_api_status() {
+  return json{{"status", "ok"}, {"message", "This is API status"}};
+}
+
+json handle_api_user() {
+  return json{{"status", "ok"}, {"message", "This is API user"}};
+}
+
+// ========== POST Handlers ==========
+json handle_login(const json& data) {
+  std::string username = data.value("username", "unknown");
+  return json{{"status", "ok"}, {"message", "User " + username + " logged in"}};
+}
+
+json handle_upload(const json& data) {
+  return json{{"status", "ok"}, {"message", "Upload received: " + data.dump()}};
+}
+
+// ========== Handler Dispatchers ==========
+json handle_get(const json& j) {
+  static const std::unordered_map<std::string, GetHandler> get_routes = {
+      {"/api/info", handle_api_info},
+      {"/api/status", handle_api_status},
+      {"/api/user", handle_api_user}};
+  std::string path = j["data"];
+  auto it = get_routes.find(path);
+  if (it != get_routes.end()) return it->second();
+  return json{{"status", "error"}, {"message", "Unknown GET path: " + path}};
+}
+
+json handle_post(const json& j) {
+  static const std::unordered_map<std::string, PostHandler> post_routes = {
+      {"login", handle_login}, {"upload", handle_upload}};
+  std::string action = j["data"].value("action", "");
+  auto it = post_routes.find(action);
+  if (it != post_routes.end()) return it->second(j["data"]);
+  return json{{"status", "error"},
+              {"message", "Unknown POST action: " + action}};
+}
+
+json handle_json(const json& j) {
+  return json{{"status", "ok"},
+              {"message", "Generic JSON received"},
+              {"echo", j["data"]}};
+}
+
+std::string process_message(const std::string& message) {
+  try {
+    json j = json::parse(message);
+    std::string type = j["type"];
+    if (type == "GET") return handle_get(j).dump();
+    if (type == "POST") return handle_post(j).dump();
+    if (type == "JSON") return handle_json(j).dump();
+
+    return json({{"status", "error"}, {"message", "Unknown type: " + type}})
+        .dump();
+  } catch (const std::exception& e) {
+    return json({{"status", "error"},
+                 {"message", std::string("Invalid JSON: ") + e.what()}})
+        .dump();
+  }
+}
+
+void client_handler(int client_socket, sockaddr_in client_addr) {
+  std::cout << "Client connected: " << inet_ntoa(client_addr.sin_addr) << ":"
+            << ntohs(client_addr.sin_port) << "\n";
+
+  char buffer[4096];
+  while (true) {
+    memset(buffer, 0, sizeof(buffer));
+    int bytes_received = recv(client_socket, buffer, sizeof(buffer) - 1, 0);
+
+    if (bytes_received <= 0) {
+      { std::cout << "Client disconnected.\n"; }
+      std::lock_guard<std::mutex> lock(table_mutex);
+      connection_table[client_socket].active = false;
+      break;
+    }
+
+    std::string received(buffer);
+    std::string response = process_message(received);
+    send(client_socket, response.c_str(), response.size(), 0);
+  }
+
+  close(client_socket);
+}
 
 int main() {
-  std::cout << "This is bin4!" << std::endl;
-  std::cout << square(5) << std::endl;
-  print_hello();
+  const int PORT = 12345;
+  int server_socket = socket(AF_INET, SOCK_STREAM, 0);
+  if (server_socket == -1) {
+    std::cerr << "Socket creation failed.\n";
+    return 1;
+  }
 
-  Notifier n;
+  sockaddr_in server_addr{};
+  server_addr.sin_family = AF_INET;
+  server_addr.sin_addr.s_addr = INADDR_ANY;
+  server_addr.sin_port = htons(PORT);
 
-  std::thread t1([&] { n.wait(); });
-  std::thread t2([&] {
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    n.signal();
-  });
+  if (bind(server_socket, (sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+    std::cerr << "Bind failed.\n";
+    return 1;
+  }
 
-  t1.join();
-  t2.join();
+  if (listen(server_socket, SOMAXCONN) < 0) {
+    std::cerr << "Listen failed.\n";
+    return 1;
+  }
+
+  std::cout << "Server listening on port " << PORT << "...\n";
+
+  while (true) {
+    sockaddr_in client_addr{};
+    socklen_t len = sizeof(client_addr);
+    int client_socket = accept(server_socket, (sockaddr*)&client_addr, &len);
+    if (client_socket < 0) {
+      std::cerr << "Accept failed.\n";
+      continue;
+    }
+
+    std::thread t(client_handler, client_socket, client_addr);
+    {
+      std::lock_guard<std::mutex> lock(table_mutex);
+      connection_table[client_socket] =
+          ClientConnection{client_socket, std::move(t), true};
+    }
+  }
+
+  close(server_socket);
   return 0;
 }

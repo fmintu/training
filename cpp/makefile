@@ -6,6 +6,7 @@ CXXFLAGS := -std=c++17 -Wall -Wextra $(INCLUDES)
 
 # ===== Include packets =====
 include pkg/gtest.mk
+include pkg/json.mk
 # ===== Include modules =====
 include common/util.mk
 include lib/math/math.mk
@@ -19,7 +20,7 @@ include bin/bin3/bin3.mk
 include bin/bin4/bin4.mk
 
 # ===== Targets =====
-ALL_PKGS := gtest
+ALL_PKGS := json  #pkg_gtest
 
 ALL_BINS := $(BIN1_OUT) $(BIN2_OUT) $(BIN3_OUT) $(BIN4_OUT)
 ALL_LIBS := $(UTIL_LIB) $(MATH_LIB) $(SHAPE_LIB) $(THREAD_LIB)
@@ -27,7 +28,7 @@ ALL_LIBS := $(UTIL_LIB) $(MATH_LIB) $(SHAPE_LIB) $(THREAD_LIB)
 
 .PHONY: all clean build_pkg clear_pkg
 
-all: $(ALL_LIBS) $(ALL_BINS) $(ALL_PKGS)
+all: $(ALL_PKGS) $(ALL_LIBS) $(ALL_BINS)
 
 clean:
-	rm -rf build/*
+	rm -rf .build/*

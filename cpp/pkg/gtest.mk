@@ -1,12 +1,12 @@
 # === CONFIGURATION ===
-GTEST_SRC_DIR := pkg/gtest/googletest
-GTEST_BUILD_DIR := $(GTEST_SRC_DIR)/build
-GTEST_OUTPUT_DIR := build/pkg/gtest
+GTEST_SRC_DIR := .build/pkg/gtest/googletest
+GTEST_BUILD_DIR := $(GTEST_SRC_DIR)/.build
+GTEST_OUTPUT_DIR := .build/pkg/gtest
 
 .PHONY: gtest gtest-clean
 
 # === gtest: clone + build + copy ===
-gtest:
+pkg_gtest:
 	@if [ ! -d "$(GTEST_SRC_DIR)" ]; then \
 		echo "Cloning GoogleTest..."; \
 		git clone https://github.com/google/googletest.git $(GTEST_SRC_DIR); \
