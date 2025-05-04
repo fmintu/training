@@ -19,8 +19,6 @@ LIB_PATHS += -L.build/lib/shape
 LIB_PATHS += -L.build/lib/thread
 LIB_PATHS += -L.build/pkg/sqlite
 
-
-
 LINK_LIBS := -l:util.a -l:math.a -l:shape.a -l:thread.a -l:libsqlite.a
 
 # Compiler flags

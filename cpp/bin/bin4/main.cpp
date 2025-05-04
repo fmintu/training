@@ -1,63 +1,36 @@
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <unistd.h>
-
+#include <cstdlib>  // for EXIT_SUCCESS, EXIT_FAILURE
 #include <iostream>
 
-#include "client_handler.h"
-#include "connection_table.h"
-#include "database.h"
-
-std::unordered_map<int, ClientConnection> connection_table;
-std::mutex table_mutex;
+#include "controller.h"
+#include "db_manager.h"
+#include "socket_manager.h"
 
 int main() {
-  if (!init_database("login.db")) {
-    std::cerr << "Database initialization failed.\n";
-    return 1;
-  }
-  // =============================================
-  const int PORT = 123456;
-  int server_socket = socket(AF_INET, SOCK_STREAM, 0);
-  if (server_socket == -1) {
-    std::cerr << "Socket creation failed.\n";
-    return 1;
-  }
-
-  sockaddr_in server_addr{};
-  server_addr.sin_family = AF_INET;
-  server_addr.sin_addr.s_addr = INADDR_ANY;
-  server_addr.sin_port = htons(PORT);
-
-  if (bind(server_socket, (sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
-    std::cerr << "Bind failed.\n";
-    return 1;
-  }
-
-  if (listen(server_socket, SOMAXCONN) < 0) {
-    std::cerr << "Listen failed.\n";
-    return 1;
-  }
-
-  std::cout << "Server listening on port " << PORT << "...\n";
-
-  while (true) {
-    sockaddr_in client_addr{};
-    socklen_t len = sizeof(client_addr);
-    int client_socket = accept(server_socket, (sockaddr*)&client_addr, &len);
-    if (client_socket < 0) {
-      std::cerr << "Accept failed.\n";
-      continue;
+  try {
+    // 1. create database
+    SqlManager db;
+    if (!db.initDatabase("login_history.db")) {
+      std::cerr << "Failed to initialize database\n";
+      return EXIT_FAILURE;
     }
 
-    std::thread t(client_handler, client_socket, client_addr);
-    {
-      std::lock_guard<std::mutex> lock(table_mutex);
-      connection_table[client_socket] =
-          ClientConnection{client_socket, std::move(t), true};
-    }
-  }
+    // 2. init
+    SocketManager sockMgr(123456, &db);
+    Controller controller(&db, &sockMgr);
 
-  close(server_socket);
-  return 0;
+    // 3. run server
+    controller.Init();
+    controller.Wait();
+
+    // close database
+    db.closeDatabase();
+
+    return EXIT_SUCCESS;
+  } catch (const std::exception& e) {
+    std::cerr << "Unhandled exception: " << e.what() << "\n";
+    return EXIT_FAILURE;
+  } catch (...) {
+    std::cerr << "Unknown fatal error occurred\n";
+    return EXIT_FAILURE;
+  }
 }
