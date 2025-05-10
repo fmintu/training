@@ -1,14 +1,14 @@
 # ===== CONFIG =====
-BUILD_DIR   := .build/bin/bin3
-SRC_DIR     := bin/bin3
+BUILD_DIR   := .build/bin/client
+SRC_DIR     := bin/client
 
 
 # Source files
-BIN3_SRC := $(wildcard $(SRC_DIR)/*.cpp)
+CLIENT_SRC := $(wildcard $(SRC_DIR)/*.cpp)
 
 # Object files
-BIN3_OBJ := $(BIN3_SRC:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/%.o)
-BIN3_TARGET    := $(BUILD_DIR)/bin3
+CLIENT_OBJ := $(CLIENT_SRC:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/%.o)
+CLIENT_TARGET    := $(BUILD_DIR)/client
 
 # Include paths
 INC_PATHS   := -I.build/pkg/json -Icommon -Ilib
@@ -21,15 +21,15 @@ LINK_LIBS   := -l:util.a -l:math.a -l:shape.a -l:thread.a
 CXXFLAGS   += -std=c++17 -Wall -Wextra $(INC_PATHS)
 
 # ===== RULES =====
-BIN3_TARGET: $(BIN3_TARGET)
+CLIENT_TARGET: $(CLIENT_TARGET)
 
 $(BUILD_DIR):
 	@mkdir -p $@
 
-$(BIN3_OBJ): $(BIN3_SRC) | $(BUILD_DIR)
+$(CLIENT_OBJ): $(CLIENT_SRC) | $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(BIN3_TARGET): $(BIN3_OBJ)
+$(CLIENT_TARGET): $(CLIENT_OBJ)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIB_PATHS) $(LINK_LIBS)
 
 clean:

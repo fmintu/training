@@ -1,13 +1,13 @@
 # ===== Config =====
-BUILD_DIR   := .build/bin/bin4
-SRC_DIR     := bin/bin4
-BIN4_TARGET    := $(BUILD_DIR)/bin4
+BUILD_DIR   := .build/bin/server
+SRC_DIR     := bin/server
+SERVER_TARGET    := $(BUILD_DIR)/server
 
 # Source files
-BIN4_SRC := $(wildcard $(SRC_DIR)/*.cpp)
+SERVER_SRC := $(wildcard $(SRC_DIR)/*.cpp)
 
 # Object files
-BIN4_OBJ := $(BIN4_SRC:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/%.o)
+SERVER_OBJ := $(SERVER_SRC:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/%.o)
 
 # Include paths
 INC_PATHS := -I.build/pkg/json -I$(SRC_DIR) -Icommon -Ilib
@@ -25,7 +25,7 @@ LINK_LIBS := -l:util.a -l:math.a -l:shape.a -l:thread.a -l:libsqlite.a
 CXXFLAGS += -std=c++17 -Wall -Wextra $(INC_PATHS)
 
 # ===== Rules =====
-BIN4_TARGET: $(BIN4_TARGET)
+SERVER_TARGET: $(SERVER_TARGET)
 
 $(BUILD_DIR):
 	@mkdir -p $@
@@ -33,7 +33,7 @@ $(BUILD_DIR):
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(BIN4_TARGET): $(BIN4_OBJ)
+$(SERVER_TARGET): $(SERVER_OBJ)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIB_PATHS) $(LINK_LIBS)
 
 clean:

@@ -17,13 +17,13 @@ include lib/thread/thread.mk
 # ===== Include binaries =====
 include bin/bin1/bin1.mk
 include bin/bin2/bin2.mk
-include bin/bin3/bin3.mk
-include bin/bin4/bin4.mk
+include bin/client/client.mk
+include bin/server/server.mk
 
 # ===== Targets =====
 ALL_PKGS := json pkg_sqlite #pkg_gtest
 
-ALL_BINS := $(BIN1_TARGET) $(BIN2_TARGET) $(BIN3_TARGET) $(BIN4_TARGET)
+ALL_BINS := $(BIN1_TARGET) $(BIN2_TARGET) $(CLIENT_TARGET) $(SERVER_TARGET)
 ALL_LIBS := $(UTIL_LIB) $(MATH_LIB) $(SHAPE_LIB) $(THREAD_LIB)
 
 

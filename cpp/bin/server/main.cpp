@@ -1,5 +1,6 @@
 #include <cstdlib>  // for EXIT_SUCCESS, EXIT_FAILURE
 #include <iostream>
+#include <string>
 
 #include "controller.h"
 #include "db_manager.h"
@@ -9,21 +10,19 @@ int main() {
   try {
     // 1. create database
     SqlManager db;
-    if (!db.initDatabase("login_history.db")) {
+    if (!db.initDatabase("app.db")) {
       std::cerr << "Failed to initialize database\n";
       return EXIT_FAILURE;
     }
 
     // 2. init
-    SocketManager sockMgr(123456, &db);
-    Controller controller(&db, &sockMgr);
+    RequestHandler reqHandler(&db);
+    SocketManager sockMgr(123456);
+    Controller controller(&db, &sockMgr, &reqHandler);
 
     // 3. run server
     controller.Init();
     controller.Wait();
-
-    // close database
-    db.closeDatabase();
 
     return EXIT_SUCCESS;
   } catch (const std::exception& e) {
@@ -33,4 +32,6 @@ int main() {
     std::cerr << "Unknown fatal error occurred\n";
     return EXIT_FAILURE;
   }
+
+  return 0;
 }
