@@ -10,7 +10,7 @@ int main() {
   try {
     // 1. create database
     SqlManager db;
-    if (!db.initDatabase("app.db")) {
+    if (!db.InitDatabase("app.db")) {
       std::cerr << "Failed to initialize database\n";
       return EXIT_FAILURE;
     }
@@ -18,7 +18,7 @@ int main() {
     // 2. init
     RequestHandler reqHandler(&db);
     SocketManager sockMgr(123456);
-    Controller controller(&db, &sockMgr, &reqHandler);
+    Controller controller(&sockMgr, &reqHandler);
 
     // 3. run server
     controller.Init();

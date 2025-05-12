@@ -7,9 +7,8 @@
 
 using json = nlohmann::json;
 
-Controller::Controller(DbManager* dbmgr, SocketManager* sockmgr,
-                       RequestHandler* handler)
-    : dbmanager_(dbmgr), socket_manager_(sockmgr), handler_(handler) {}
+Controller::Controller(SocketManager* sockmgr, RequestHandler* handler)
+    : socket_manager_(sockmgr), handler_(handler) {}
 
 Controller::~Controller() {
   if (accept_thread_.joinable()) accept_thread_.join();

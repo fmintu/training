@@ -13,7 +13,7 @@
 
 class Controller {
  public:
-  Controller(DbManager* dbmgr, SocketManager* sockmgr, RequestHandler* handler);
+  Controller(SocketManager* sockmgr, RequestHandler* handler);
   ~Controller();
 
   void Init();
