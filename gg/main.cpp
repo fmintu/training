@@ -10,6 +10,8 @@
 std::unordered_map<int, ClientConnection> connection_table;
 std::mutex table_mutex;
 
+void pxhoang_test() { std::cout << "pxhoang_test function called.\n"; }
+
 int main() {
   const int PORT = 12345;
   int server_socket = socket(AF_INET, SOCK_STREAM, 0);
